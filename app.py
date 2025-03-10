@@ -33,11 +33,22 @@ def login():
     user = users_collection.find_one({
         '$or': [{'username': username_or_email}, {'email': username_or_email}],
         'password': password
-    })
+    }, {'_id': 0, 'username': 1, 'email': 1})  # Ensure we fetch username & email
 
     if user:
-        return jsonify({'message': 'Login successful'}), 200
+        return jsonify({'message': 'Login successful', 'email': user['email']}), 200
     return jsonify({'message': 'Invalid credentials'}), 400
+
+@app.route('/get_user', methods=['POST'])
+def get_user():
+    data = request.get_json()
+    email = data.get('email')
+
+    user = users_collection.find_one({'email': email}, {'_id': 0, 'username': 1})
+    if user:
+        return jsonify({'username': user['username']}), 200
+    return jsonify({'message': 'User not found'}), 404
+
 
 if __name__ == '__main__':
     app.run(debug=True)
