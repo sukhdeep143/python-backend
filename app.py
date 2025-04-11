@@ -14,7 +14,7 @@ posts_collection = db['posts']
 
 # Image Upload Configuration
 UPLOAD_FOLDER = 'uploads'
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)   
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # ✅ Serve Uploaded Images
