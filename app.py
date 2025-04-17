@@ -1,13 +1,16 @@
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from pymongo import MongoClient
+from dotenv import load_dotenv
 import os
+
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 
-# MongoDB Connection
-client = MongoClient("mongodb://localhost:27017/")
+# MongoDB Connection (from .env)
+client = MongoClient(os.getenv("MONGO_URI"))
 db = client['login_system']
 users_collection = db['users']
 posts_collection = db['posts']
@@ -82,7 +85,7 @@ def create_post():
     post_data = {
         'title': title,
         'paragraph': paragraph,
-        'image_path': f"/uploads/{image_filename}"  # Store relative path
+        'image_path': f"/uploads/{image_filename}"
     }
     posts_collection.insert_one(post_data)
 
