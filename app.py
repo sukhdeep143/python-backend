@@ -9,23 +9,20 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
 
-# MongoDB Connection (from .env)
+# MongoDB Connection
 client = MongoClient(os.getenv("MONGO_URI"))
 db = client['login_system']
 users_collection = db['users']
 posts_collection = db['posts']
 
-# Image Upload Configuration
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)   
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# ✅ Serve Uploaded Images
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
-# ✅ User Signup
 @app.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
@@ -39,7 +36,6 @@ def register():
     users_collection.insert_one({'username': username, 'email': email, 'password': password})
     return jsonify({'message': 'User registered successfully'}), 201
 
-# ✅ User Login
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
@@ -55,7 +51,6 @@ def login():
         return jsonify({'message': 'Login successful', 'email': user['email']}), 200
     return jsonify({'message': 'Invalid credentials'}), 400
 
-# ✅ Get User
 @app.route('/get_user', methods=['POST'])
 def get_user():
     data = request.get_json()
@@ -66,7 +61,6 @@ def get_user():
         return jsonify({'username': user['username']}), 200
     return jsonify({'message': 'User not found'}), 404
 
-# ✅ Create Post (with Image Upload)
 @app.route('/create_post', methods=['POST'])
 def create_post():
     title = request.form.get('title')
@@ -76,12 +70,10 @@ def create_post():
     if not title or not paragraph or not image:
         return jsonify({'message': 'All fields are required'}), 400
 
-    # Save image
     image_filename = image.filename
     image_path = os.path.join(app.config['UPLOAD_FOLDER'], image_filename)
     image.save(image_path)
 
-    # Insert into MongoDB
     post_data = {
         'title': title,
         'paragraph': paragraph,
@@ -91,11 +83,11 @@ def create_post():
 
     return jsonify({'message': 'Post created successfully'}), 201
 
-# ✅ Fetch All Posts
 @app.route('/get_posts', methods=['GET'])
 def get_posts():
     posts = list(posts_collection.find({}, {'_id': 0}))
     return jsonify(posts), 200
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(debug=False, host='0.0.0.0', port=port)
