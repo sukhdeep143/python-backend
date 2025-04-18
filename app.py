@@ -11,6 +11,7 @@ CORS(app, supports_credentials=True)
 
 # MongoDB Connection
 client = MongoClient(os.getenv("MONGO_URI"))
+# client = MongoClient("mongodb://localhost:27017/")
 db = client['login_system']
 users_collection = db['users']
 posts_collection = db['posts']
