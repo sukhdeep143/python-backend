@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from pymongo import MongoClient
+from bson import ObjectId
 from dotenv import load_dotenv
 import os
 
@@ -17,7 +18,7 @@ users_collection = db['users']
 posts_collection = db['posts']
 
 UPLOAD_FOLDER = 'uploads'
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)   
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 @app.route('/uploads/<filename>')
@@ -86,8 +87,21 @@ def create_post():
 
 @app.route('/get_posts', methods=['GET'])
 def get_posts():
-    posts = list(posts_collection.find({}, {'_id': 0}))
+    posts = list(posts_collection.find({}))
+    for post in posts:
+        post['_id'] = str(post['_id'])  # Convert ObjectId to string
     return jsonify(posts), 200
+
+@app.route('/get_post/<post_id>', methods=['GET'])
+def get_post(post_id):
+    try:
+        post = posts_collection.find_one({'_id': ObjectId(post_id)})
+        if post:
+            post['_id'] = str(post['_id'])
+            return jsonify(post), 200
+        return jsonify({'message': 'Post not found'}), 404
+    except Exception as e:
+        return jsonify({'error': 'Invalid ID'}), 400
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
